@@ -1,4 +1,4 @@
-import { Label, Note, GroceryItem } from "./types";
+import { Label, Note } from "./types";
 
 export const dummyNotesList: Note[] = [
    {
@@ -37,9 +37,4 @@ export const dummyNotesList: Note[] = [
        content: "test note 6 content",
        label: Label.personal,
    },
-];
-
-export const dummyGroceryList: GroceryItem[] = [
-   { name: "Apples", isPurchased: false },
-   { name: "Bananas", isPurchased: false },
 ];
