@@ -15,19 +15,11 @@ export function ToDoList() {
   }, [items]);
 
   function handleCheckboxClick(itemName: string) {
-    setItems(prevItems => {
-      const updatedItems = prevItems.map(item =>
+    setItems(prevItems =>
+      prevItems.map(item =>
         item.name === itemName ? { ...item, isPurchased: !item.isPurchased } : item
-      );
-      return sortItems(updatedItems);
-    });
-  }
-
-  function sortItems(items: GroceryItem[]): GroceryItem[] {
-    return [
-      ...items.filter(item => !item.isPurchased),
-      ...items.filter(item => item.isPurchased)
-    ];
+      )
+    );
   }
 
   return (

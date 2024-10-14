@@ -6,36 +6,40 @@ import { dummyGroceryList } from "./constants";
 
 export function ToDoList() {
   const { name } = useParams<{ name: string }>();
-  const [items, setItems] = useState<GroceryItem[]>(dummyGroceryList);
-  const [numBoughtItems, setNumBoughtItems] = useState(0);
+  const [items, setItems] = useState<GroceryItem[]>([]);
+  const [numRemainingItems, setNumRemainingItems] = useState(0);
 
   useEffect(() => {
-    const boughtItems = items.filter(item => item.isPurchased).length;
-    setNumBoughtItems(boughtItems);
-  }, [items]);
+    // Load items from local storage or use dummy list if not available
+    const storedItems = localStorage.getItem(`todoList_${name}`);
+    if (storedItems) {
+      setItems(JSON.parse(storedItems));
+    } else {
+      setItems(dummyGroceryList);
+    }
+  }, [name]);
+
+  useEffect(() => {
+    // Save items to local storage whenever they change
+    localStorage.setItem(`todoList_${name}`, JSON.stringify(items));
+    // Update the count of purchased items
+    setNumRemainingItems(items.filter(item => item.isPurchased).length);
+  }, [items, name]);
 
   function handleCheckboxClick(itemName: string) {
-    setItems(prevItems => {
-      const updatedItems = prevItems.map(item =>
+    setItems(prevItems =>
+      prevItems.map(item =>
         item.name === itemName ? { ...item, isPurchased: !item.isPurchased } : item
-      );
-      return sortItems(updatedItems);
-    });
-  }
-
-  function sortItems(items: GroceryItem[]): GroceryItem[] {
-    return [
-      ...items.filter(item => !item.isPurchased),
-      ...items.filter(item => item.isPurchased)
-    ];
+      )
+    );
   }
 
   return (
     <div className="App">
       <div className="App-body">
         <h1>{name}'s To Do List</h1>
-        <p>Items bought: {numBoughtItems}</p>
-        <form action=".">
+        <p>Items bought: {numRemainingItems}</p>
+        <form>
           {items.map((item) => (
             <div key={item.name}>
               <input

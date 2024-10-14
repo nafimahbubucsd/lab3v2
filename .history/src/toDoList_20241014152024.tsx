@@ -19,15 +19,11 @@ export function ToDoList() {
       const updatedItems = prevItems.map(item =>
         item.name === itemName ? { ...item, isPurchased: !item.isPurchased } : item
       );
-      return sortItems(updatedItems);
+      return [
+        ...updatedItems.filter(item => !item.isPurchased),
+        ...updatedItems.filter(item => item.isPurchased)
+      ];
     });
-  }
-
-  function sortItems(items: GroceryItem[]): GroceryItem[] {
-    return [
-      ...items.filter(item => !item.isPurchased),
-      ...items.filter(item => item.isPurchased)
-    ];
   }
 
   return (
