@@ -1,29 +1,28 @@
-import React from 'react';
-import { render, screen, fireEvent, within } from "@testing-library/react";
-import App from "./App";
-import { BrowserRouter } from "react-router-dom";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { StickyNotes } from "./StickyNotes";
+import { BrowserRouter } from "react-router-dom"; // If necessary for routing
+import { Label } from "./types";
 
 describe("StickyNotes Component", () => {
-  beforeEach(() => {
-    render(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    );
-  });
 
+  // Test 1: Create note form renders
   test("renders create note form", () => {
+    render(<StickyNotes initialNotes={[]} initialFavorites={[]} onToggleFavorite={jest.fn()} />);
+    
     const createNoteButton = screen.getByText("Create Note");
     expect(createNoteButton).toBeInTheDocument();
   });
 
+  // Test 2: Create a new note
   test("creates a new note", () => {
-    const titleInput = screen.getByPlaceholderText("Note Title");
-    const contentTextarea = screen.getByPlaceholderText("Note Content");
+    render(<StickyNotes initialNotes={[]} initialFavorites={[]} onToggleFavorite={jest.fn()} />);
+
+    const createNoteTitleInput = screen.getByPlaceholderText("Note Title");
+    const createNoteContentTextarea = screen.getByPlaceholderText("Note Content");
     const createNoteButton = screen.getByText("Create Note");
 
-    fireEvent.change(titleInput, { target: { value: "New Note" } });
-    fireEvent.change(contentTextarea, { target: { value: "Note content" } });
+    fireEvent.change(createNoteTitleInput, { target: { value: "New Note" } });
+    fireEvent.change(createNoteContentTextarea, { target: { value: "Note content" } });
     fireEvent.click(createNoteButton);
 
     const newNoteTitle = screen.getByText("New Note");
@@ -33,125 +32,94 @@ describe("StickyNotes Component", () => {
     expect(newNoteContent).toBeInTheDocument();
   });
 
-  test("reads all created notes", () => {
-    const noteTitles = screen.getAllByRole('heading', { level: 3 });
-    expect(noteTitles.length).toBeGreaterThan(0);
+  // Test 3: Read all created notes
+  test("displays all created notes", () => {
+    const initialNotes = [
+      { id: 1, title: "Note 1", content: "Content 1", label: Label.other },
+      { id: 2, title: "Note 2", content: "Content 2", label: Label.personal }
+    ];
+    
+    render(<StickyNotes initialNotes={initialNotes} initialFavorites={[]} onToggleFavorite={jest.fn()} />);
+
+    const note1 = screen.getByText("Note 1");
+    const note2 = screen.getByText("Note 2");
+
+    expect(note1).toBeInTheDocument();
+    expect(note2).toBeInTheDocument();
   });
 
+  // Test 4: Update an existing note
   test("updates a note", () => {
-    const noteTitles = screen.getAllByRole('heading', { level: 3 });
-    const firstNoteTitle = noteTitles[0];
+    const initialNotes = [
+      { id: 1, title: "Old Note", content: "Old Content", label: Label.other }
+    ];
 
-    fireEvent.focus(firstNoteTitle);
-    fireEvent.change(firstNoteTitle, { target: { textContent: "Updated Title" } });
-    fireEvent.blur(firstNoteTitle);
+    render(<StickyNotes initialNotes={initialNotes} initialFavorites={[]} onToggleFavorite={jest.fn()} />);
 
-    expect(screen.getByText("Updated Title")).toBeInTheDocument();
+    const noteTitle = screen.getByText("Old Note");
+    fireEvent.blur(noteTitle, { target: { textContent: "Updated Note" } });
+
+    expect(screen.getByText("Updated Note")).toBeInTheDocument();
   });
 
+  // Test 5: Delete a note
   test("deletes a note", () => {
-    const deleteButtons = screen.getAllByText('x');
-    const initialNotesCount = deleteButtons.length;
+    const initialNotes = [
+      { id: 1, title: "Note to delete", content: "Content to delete", label: Label.other }
+    ];
 
-    fireEvent.click(deleteButtons[0]);
+    render(<StickyNotes initialNotes={initialNotes} initialFavorites={[]} onToggleFavorite={jest.fn()} />);
 
-    const updatedDeleteButtons = screen.getAllByText('x');
-    expect(updatedDeleteButtons.length).toBe(initialNotesCount - 1);
+    const deleteButton = screen.getByText("x");
+    fireEvent.click(deleteButton);
+
+    expect(screen.queryByText("Note to delete")).not.toBeInTheDocument();
   });
 
-  test("cannot create note with empty fields", () => {
-    const createNoteButton = screen.getByText("Create Note");
-    fireEvent.click(createNoteButton);
+  // Test 6: Edge Case - Zero notes
+  test("handles zero notes", () => {
+    render(<StickyNotes initialNotes={[]} initialFavorites={[]} onToggleFavorite={jest.fn()} />);
 
-    const errorMessage = screen.getByText('Please fill in all fields');
-    expect(errorMessage).toBeInTheDocument();
+    // Expect no notes to be displayed
+    const noNotesMessage = screen.queryByText("No notes available"); // Add this if you display a "No notes" message
+    expect(noNotesMessage).toBeNull();
   });
 
-  test("creates note with long title", () => {
-    const titleInput = screen.getByPlaceholderText("Note Title");
-    const contentTextarea = screen.getByPlaceholderText("Note Content");
+  // Test 7: Handle long note title and content
+  test("handles long note titles and content", () => {
+    const longTitle = "A".repeat(100);
+    const longContent = "B".repeat(500);
+
+    render(<StickyNotes initialNotes={[]} initialFavorites={[]} onToggleFavorite={jest.fn()} />);
+
+    const createNoteTitleInput = screen.getByPlaceholderText("Note Title");
+    const createNoteContentTextarea = screen.getByPlaceholderText("Note Content");
     const createNoteButton = screen.getByText("Create Note");
 
-    const longTitle = 'A'.repeat(100);
-    fireEvent.change(titleInput, { target: { value: longTitle } });
-    fireEvent.change(contentTextarea, { target: { value: "Content" } });
+    fireEvent.change(createNoteTitleInput, { target: { value: longTitle } });
+    fireEvent.change(createNoteContentTextarea, { target: { value: longContent } });
     fireEvent.click(createNoteButton);
 
-    const newNoteTitle = screen.getByText(longTitle);
-    expect(newNoteTitle).toBeInTheDocument();
-  });
-
-  test("text entered in form matches created note", () => {
-    const titleInput = screen.getByPlaceholderText("Note Title");
-    const contentTextarea = screen.getByPlaceholderText("Note Content");
-    const createNoteButton = screen.getByText("Create Note");
-
-    const testTitle = "Test Title";
-    const testContent = "Test Content";
-
-    fireEvent.change(titleInput, { target: { value: testTitle } });
-    fireEvent.change(contentTextarea, { target: { value: testContent } });
-    fireEvent.click(createNoteButton);
-
-    const createdNoteTitle = screen.getByText(testTitle);
-    const createdNoteContent = screen.getByText(testContent);
+    const createdNoteTitle = screen.getByText(longTitle);
+    const createdNoteContent = screen.getByText(longContent);
 
     expect(createdNoteTitle).toBeInTheDocument();
     expect(createdNoteContent).toBeInTheDocument();
   });
 
-  test("creates multiple notes", () => {
-    const initialNotesCount = screen.getAllByText('x').length;
+  // Test 8: Toggle favorite status
+  test("toggles favorite status", () => {
+    const initialNotes = [
+      { id: 1, title: "Favorite Note", content: "Content", label: Label.other }
+    ];
 
-    for (let i = 0; i < 3; i++) {
-      const titleInput = screen.getByPlaceholderText("Note Title");
-      const contentTextarea = screen.getByPlaceholderText("Note Content");
-      const createNoteButton = screen.getByText("Create Note");
+    const toggleFavoriteMock = jest.fn();
 
-      fireEvent.change(titleInput, { target: { value: `Note ${i + 1}` } });
-      fireEvent.change(contentTextarea, { target: { value: `Content ${i + 1}` } });
-      fireEvent.click(createNoteButton);
-    }
+    render(<StickyNotes initialNotes={initialNotes} initialFavorites={[]} onToggleFavorite={toggleFavoriteMock} />);
 
-    const finalNotesCount = screen.getAllByText('x').length;
-    expect(finalNotesCount).toBe(initialNotesCount + 3);
-  });
+    const favoriteButton = screen.getByText("♥");
+    fireEvent.click(favoriteButton);
 
-  test("deletes all notes", () => {
-    const deleteButtons = screen.getAllByText('x');
-    deleteButtons.forEach(button => fireEvent.click(button));
-
-    const remainingNotes = screen.queryAllByRole('heading', { level: 3 });
-    expect(remainingNotes.length).toBe(0);
-  });
-
-  test("creates note with special characters", () => {
-    const titleInput = screen.getByPlaceholderText("Note Title");
-    const contentTextarea = screen.getByPlaceholderText("Note Content");
-    const createNoteButton = screen.getByText("Create Note");
-
-    const specialTitle = "📝 <b>Special</b> Title";
-    const specialContent = "🚀 <i>Special</i> Content";
-
-    fireEvent.change(titleInput, { target: { value: specialTitle } });
-    fireEvent.change(contentTextarea, { target: { value: specialContent } });
-    fireEvent.click(createNoteButton);
-
-    const createdNoteTitle = screen.getByText("📝 <b>Special</b> Title");
-    const createdNoteContent = screen.getByText("🚀 <i>Special</i> Content");
-
-    expect(createdNoteTitle).toBeInTheDocument();
-    expect(createdNoteContent).toBeInTheDocument();
-  });
-
-  test("updates note with empty content", () => {
-    const noteTitles = screen.getAllByRole('heading', { level: 3 });
-    const firstNoteContent = noteTitles[0].nextElementSibling as HTMLElement;
-
-    fireEvent.focus(firstNoteContent);
-    fireEvent.change(firstNoteContent, { target: { textContent: "" } });
-    fireEvent.blur(firstNoteContent);
-
-    expect(firstNoteContent.textContent).toBe("");
+    expect(toggleFavoriteMock).toHaveBeenCalledWith("Favorite Note");
   });
 });

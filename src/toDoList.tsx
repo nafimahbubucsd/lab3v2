@@ -43,6 +43,7 @@ export function ToDoList() {
                 checked={item.isPurchased}
                 onChange={() => handleCheckboxClick(item.name)}
                 name={item.name}
+                aria-label={item.name}
               />
               {item.name}
             </div>
