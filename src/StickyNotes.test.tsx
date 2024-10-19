@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { StickyNotes } from "./StickyNotes";
-import { BrowserRouter } from "react-router-dom"; // If necessary for routing
+import { BrowserRouter } from "react-router-dom"; 
 import { Label } from "./types";
 
 describe("StickyNotes Component", () => {
