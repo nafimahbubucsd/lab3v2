@@ -61,7 +61,6 @@ describe("ToDoList Component", () => {
       </BrowserRouter>
     );
 
-    // Assuming dummyGroceryList has an item with special characters "@Special!Item#"
     const specialItem = screen.getByText("@Special!Item#");
 
     expect(specialItem).toBeInTheDocument();
